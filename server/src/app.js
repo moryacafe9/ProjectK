@@ -52,6 +52,12 @@ app.use(compression());
 const uploadDir = process.env.UPLOAD_DIR || path.resolve(__dirname, '../../uploads');
 ensureDirectory(uploadDir);
 
+// Serve static frontend
+const publicDir = path.resolve(__dirname, '../public');
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir, { maxAge: '1h', etag: true }));
+}
+
 // Health
 app.get('/health', (req, res) => res.json({ ok: true, dbKind: getDbKind() }));
 
@@ -59,6 +65,13 @@ app.get('/health', (req, res) => res.json({ ok: true, dbKind: getDbKind() }));
 app.use('/upload', uploadRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/contact', contactRouter);
+
+// Fallback to index.html for root
+app.get('/', (req, res) => {
+  const indexPath = path.join(publicDir, 'index.html');
+  if (fs.existsSync(indexPath)) return res.sendFile(indexPath);
+  res.status(200).send('ClassiCo Tech backend is running.');
+});
 
 // Global error handler
 // eslint-disable-next-line no-unused-vars
