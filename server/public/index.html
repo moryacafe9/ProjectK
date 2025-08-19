@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ClassiCo Tech – AI Website to Database Connector</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+    header { background: #222; color: #fff; padding: 20px 40px; text-align: center; }
+    header h1 { margin: 0; font-size: 2rem; letter-spacing: 1px; }
+    .container { max-width: 600px; margin: 50px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.1); text-align: center; }
+    .drop-zone { border: 3px dashed #999; padding: 40px; border-radius: 10px; cursor: pointer; transition: background .3s ease; }
+    .drop-zone.dragover { background-color: #e9ecef; }
+    #file-input { display: none; }
+    #status { margin-top: 20px; font-weight: bold; }
+    footer { margin-top: 60px; text-align: center; font-size: .9rem; color: #777; }
+    code { background: #f1f1f1; padding: 3px 6px; border-radius: 4px; font-family: monospace; }
+    .success { color: #28a745; }
+    .error { color: #dc3545; }
+  </style>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="icon" href="data:,">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+</head>
+<body>
+  <header>
+    <h1>🌐 ClassiCo Tech</h1>
+    <p>AI-Powered Website ➝ Database Connector</p>
+  </header>
+
+  <div class="container">
+    <h2>Upload Your Website Code</h2>
+    <p>Drag & drop your <strong>.zip</strong> project file below</p>
+
+    <div class="drop-zone" id="drop-zone">
+      Drop your ZIP file here or click to browse
+    </div>
+    <input type="file" id="file-input" accept=".zip">
+
+    <div id="status"></div>
+  </div>
+
+  <footer>
+    © 2025 ClassiCo Tech. All rights reserved.
+  </footer>
+
+  <script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const statusText = document.getElementById('status');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.zip')) {
+        uploadFile(file);
+      } else {
+        showError('Please upload a valid .zip file.');
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (file && file.name.endsWith('.zip')) {
+        uploadFile(file);
+      } else {
+        showError('Please upload a valid .zip file.');
+      }
+    });
+
+    async function uploadFile(file) {
+      statusText.textContent = 'Uploading and processing...';
+      statusText.className = '';
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('/upload/', { method: 'POST', body: formData });
+        const result = await response.json();
+        if (response.ok) {
+          statusText.className = 'success';
+          statusText.innerHTML = `✅ Success!<br>DB: <code>${result.db_kind}</code><br>URL: <code>${result.db_url}</code>`;
+        } else {
+          showError(result.detail || 'Upload failed.');
+        }
+      } catch (error) {
+        showError('Upload failed: ' + error.message);
+      }
+    }
+
+    function showError(message) {
+      statusText.className = 'error';
+      statusText.textContent = '❌ ' + message;
+    }
+  </script>
+</body>
+</html>
+
