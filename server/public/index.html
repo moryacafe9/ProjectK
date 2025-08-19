@@ -18,6 +18,12 @@
     code { background: #f1f1f1; padding: 3px 6px; border-radius: 4px; font-family: monospace; }
     .success { color: #28a745; }
     .error { color: #dc3545; }
+    .db-card { margin-top: 20px; padding: 16px; border-left: 4px solid #0070f3; background: #eef6ff; border-radius: 8px; text-align: left; }
+    .db-card h3 { margin: 0 0 8px; font-size: 1.1rem; }
+    .db-card code { background: #fff; padding: 2px 6px; border-radius: 4px; }
+    .copy-btn { margin-left: 8px; padding: 6px 10px; border: 0; background: #0070f3; color: #fff; border-radius: 6px; cursor: pointer; }
+    .copy-btn:active { transform: translateY(1px); }
+    .hidden { display: none; }
   </style>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="icon" href="data:,">
@@ -39,6 +45,14 @@
     <input type="file" id="file-input" accept=".zip">
 
     <div id="status"></div>
+
+    <div id="db-url-section" class="db-card hidden">
+      <h3>Database URL</h3>
+      <div>
+        <code id="db-url-value"></code>
+        <button id="copy-db-url" class="copy-btn" type="button">Copy</button>
+      </div>
+    </div>
   </div>
 
   <footer>
@@ -49,6 +63,9 @@
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const statusText = document.getElementById('status');
+    const dbUrlSection = document.getElementById('db-url-section');
+    const dbUrlValue = document.getElementById('db-url-value');
+    const copyBtn = document.getElementById('copy-db-url');
 
     dropZone.addEventListener('click', () => fileInput.click());
 
@@ -93,7 +110,13 @@
         const result = await response.json();
         if (response.ok) {
           statusText.className = 'success';
-          statusText.innerHTML = `✅ Success!<br>DB: <code>${result.db_kind}</code><br>URL: <code>${result.db_url}</code>`;
+          statusText.innerHTML = `✅ Success!<br>DB: <code>${result.db_kind || 'n/a'}</code>`;
+          if (result.db_url) {
+            dbUrlValue.textContent = result.db_url;
+            dbUrlSection.classList.remove('hidden');
+          } else {
+            dbUrlSection.classList.add('hidden');
+          }
         } else {
           showError(result.detail || 'Upload failed.');
         }
@@ -105,7 +128,17 @@
     function showError(message) {
       statusText.className = 'error';
       statusText.textContent = '❌ ' + message;
+      dbUrlSection.classList.add('hidden');
     }
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(dbUrlValue.textContent.trim());
+        const prev = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = prev; }, 1200);
+      } catch (_) {}
+    });
   </script>
 </body>
 </html>
