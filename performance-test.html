@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Performance Test - ClassiCo Tech</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 20px; line-height: 1.6; }
+    .metric { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 5px; }
+    .good { background: #d4edda; color: #155724; }
+    .warning { background: #fff3cd; color: #856404; }
+    .error { background: #f8d7da; color: #721c24; }
+    button { padding: 10px 20px; margin: 10px 0; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <h1>ClassiCo Tech Performance Test</h1>
+  <p>This tool measures the performance metrics of the optimized ClassiCo Tech application.</p>
+  
+  <button onclick="runPerformanceTest()">Run Performance Test</button>
+  <button onclick="loadOptimizedVersion()">Load Optimized Version</button>
+  
+  <div id="results"></div>
+
+  <script>
+    function runPerformanceTest() {
+      const results = document.getElementById('results');
+      results.innerHTML = '<h3>Performance Metrics</h3>';
+      
+      // Get performance timing
+      const navigation = performance.getEntriesByType('navigation')[0];
+      const paint = performance.getEntriesByType('paint');
+      
+      const metrics = [
+        {
+          name: 'DOM Content Loaded',
+          value: Math.round(navigation.domContentLoadedEventEnd - navigation.navigationStart),
+          unit: 'ms',
+          threshold: 500
+        },
+        {
+          name: 'Load Complete',
+          value: Math.round(navigation.loadEventEnd - navigation.navigationStart),
+          unit: 'ms',
+          threshold: 1000
+        },
+        {
+          name: 'DNS Lookup',
+          value: Math.round(navigation.domainLookupEnd - navigation.domainLookupStart),
+          unit: 'ms',
+          threshold: 50
+        },
+        {
+          name: 'Server Response',
+          value: Math.round(navigation.responseEnd - navigation.requestStart),
+          unit: 'ms',
+          threshold: 200
+        }
+      ];
+      
+      // Add paint metrics if available
+      paint.forEach(entry => {
+        metrics.push({
+          name: entry.name.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          value: Math.round(entry.startTime),
+          unit: 'ms',
+          threshold: entry.name === 'first-contentful-paint' ? 1000 : 2000
+        });
+      });
+      
+      // Display metrics
+      metrics.forEach(metric => {
+        const className = metric.value <= metric.threshold ? 'good' : 
+                         metric.value <= metric.threshold * 1.5 ? 'warning' : 'error';
+        
+        results.innerHTML += `
+          <div class="metric ${className}">
+            <strong>${metric.name}:</strong> ${metric.value}${metric.unit}
+            ${metric.value <= metric.threshold ? '✅' : metric.value <= metric.threshold * 1.5 ? '⚠️' : '❌'}
+          </div>
+        `;
+      });
+      
+      // Resource analysis
+      const resources = performance.getEntriesByType('resource');
+      const totalSize = resources.reduce((total, resource) => {
+        return total + (resource.transferSize || 0);
+      }, 0);
+      
+      results.innerHTML += `
+        <div class="metric">
+          <strong>Total Resources:</strong> ${resources.length}
+        </div>
+        <div class="metric">
+          <strong>Total Transfer Size:</strong> ${(totalSize / 1024).toFixed(2)}KB
+        </div>
+      `;
+      
+      // Memory usage (if available)
+      if (performance.memory) {
+        results.innerHTML += `
+          <div class="metric">
+            <strong>Memory Used:</strong> ${(performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB
+          </div>
+        `;
+      }
+    }
+    
+    function loadOptimizedVersion() {
+      window.open('ClassiCo Tech.asp', '_blank');
+    }
+    
+    // Auto-run test on load
+    window.addEventListener('load', () => {
+      setTimeout(runPerformanceTest, 100);
+    });
+  </script>
+</body>
+</html>
