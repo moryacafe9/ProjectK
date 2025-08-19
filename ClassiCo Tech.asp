@@ -1,8 +1,4 @@
-(cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF'
-diff --git a/ClassiCo Tech.asp b/ClassiCo Tech.asp
---- a/ClassiCo Tech.asp
-+++ b/ClassiCo Tech.asp
-@@ -0,0 +1,186 @@
+
 +<!DOCTYPE html>
 +<html lang="en">
 +<head>
@@ -191,3 +187,4 @@ diff --git a/ClassiCo Tech.asp b/ClassiCo Tech.asp
 +
 EOF
 )
+
